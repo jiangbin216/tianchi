@@ -28,26 +28,14 @@ public class SendData {
      */
     public static void sendFinishedTraceIdToGather(String traceId) {
         pool.execute(() -> {
-            Body body;
-            //是badTraceId
-            if (FilterData.badTraceIds.contains(traceId)) {
-                body = new Body(traceId, true);
-            } else {
-                body = new Body(traceId, false);
-            }
+            Body body = new Body(traceId, FilterData.badTraceIds.contains(traceId));
             RestTemplate template = new RestTemplate();
             template.postForObject(HOST + NodePort.GATHER_PORT + "/setFinishedTraceId", body, String.class);
         });
     }
 
-    /**
-     * 数据拉取成功，发送badTrace到汇总节点
-     */
-    public static void finishedPullData() {
-        pool.execute(() -> {
-            RestTemplate template = new RestTemplate();
-            String result = template.postForObject(HOST + NodePort.GATHER_PORT + "/finishedPullData", FilterData.badTraceIds, String.class);
-            LOGGER.info("finished pull data " + result);
-        });
+    public static void finishedPull(){
+        RestTemplate template = new RestTemplate();
+        template.getForObject(HOST + NodePort.GATHER_PORT + "/finished",String.class);
     }
 }

@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * 与汇总节点通信接口
@@ -16,41 +15,22 @@ import java.util.HashSet;
 @RestController
 public class FilterDataController {
     /**
-     * 根据traceId获取并删除trace
+     * 根据traceId获取trace
      *
      * @param traceId traceId
      * @return traceId对应的trace
      */
     @RequestMapping("/getTrace")
     public ArrayList<String> getTrace(@RequestBody String traceId) {
-        //删除数据并返回
-        ArrayList<String> trace = FilterData.traces.remove(traceId);
-        //合并到Data.badTraceIds
+        ArrayList<String> trace = new ArrayList<>();
+        for (int i = 0; i < FilterData.CACHE_SIZE; i++) {
+            ArrayList<String> traceIds = FilterData.TRACE_CACHE.get(i).get(traceId);
+            if (traceIds != null) {
+                trace.addAll(traceIds);
+            }
+        }
         FilterData.badTraceIds.remove(traceId);
         return trace;
     }
 
-    /**
-     * 根据traceId删除trace
-     *
-     * @param traceId traceId
-     * @return fail OR success
-     */
-    @RequestMapping("/delTrace")
-    public String delTrace(@RequestBody String traceId) {
-        return FilterData.traces.remove(traceId) == null ? "fail" : "success";
-    }
-
-    /**
-     * 返回剩余的badTraces
-     *
-     * @param badTraceIds badTraceIds
-     * @return 剩余的badTraces
-     */
-    @RequestMapping("/finishedData")
-    public HashMap<String, ArrayList<String>> finishedData(@RequestBody HashSet<String> badTraceIds) {
-        //删除不属于badTraceId的数据
-        FilterData.traces.entrySet().removeIf(trace -> !badTraceIds.contains(trace.getKey()));
-        return FilterData.traces;
-    }
 }

@@ -13,6 +13,9 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 从数据流拉取数据
@@ -41,27 +44,31 @@ public class PullData {
             BufferedReader reader = new BufferedReader(new InputStreamReader(input));
             String line;
             //记录当前数据的行数
-            int count = 0;
+            long count = 0;
+            int cachePos = 0;
+            HashMap<String, ArrayList<String>> traces = FilterData.TRACE_CACHE.get(cachePos);
+
             String traceId;
             String tags;
             String finishedTraceId;
 
             LOGGER.info("start pulling data");
             while ((line = reader.readLine()) != null) {
+                count++;
                 traceId = Utils.parseTraceId(line);
                 tags = Utils.parseTags(line);
 
                 ArrayList<String> spans;
-                if (FilterData.traces.get(traceId) == null) {
+                if (traces.get(traceId) == null) {
                     spans = new ArrayList<>();
                     //记录trace首次出现位置
                     FilterData.traceIndex.put(count, traceId);
                 } else {
-                    spans = FilterData.traces.get(traceId);
+                    spans = traces.get(traceId);
                 }
                 spans.add(line);
                 //将数据添加到traces
-                FilterData.traces.put(traceId, spans);
+                traces.put(traceId, spans);
 
                 //判断是否是符合条件的traceId
                 if (tags.contains("error=1") ||
@@ -70,17 +77,29 @@ public class PullData {
                 }
 
                 //已经读完的traceId
-                if (count >= 20000) {
+                if (count > 20000) {
                     finishedTraceId = FilterData.traceIndex.get(count - 20000);
                     if (finishedTraceId != null) {
                         //发送traceId到汇总节点
                         SendData.sendFinishedTraceIdToGather(finishedTraceId);
                     }
                 }
-                count++;
+                //切换缓存区
+                if (count % FilterData.TRACE_MAP_SIZE == 0) {
+                    cachePos++;
+                    cachePos %= FilterData.CACHE_SIZE;
+                    traces = FilterData.TRACE_CACHE.get(cachePos);
+                }
             }
-            //当前节点数据拉取完成，发送badTraceIds到汇总节点
-            SendData.finishedPullData();
+
+            //发送剩余的数据到汇总节点
+            for (long i = count - 20000 + 1; i <= count; i++) {
+                String Id = FilterData.traceIndex.get(i);
+                if (Id != null) {
+                    SendData.sendFinishedTraceIdToGather(Id);
+                }
+            }
+            SendData.finishedPull();
         } catch (IOException e) {
             e.printStackTrace();
             LOGGER.error("catch IOException");

@@ -50,45 +50,6 @@ public class ReqData {
     }
 
     /**
-     * 从两个过滤节点删除数据
-     *
-     * @param traceId 需删除的traceId
-     */
-    public static void delTraceOnFilter(String traceId) {
-        pool.execute(() -> {
-            RestTemplate template = new RestTemplate();
-            template.postForObject(HOST + PORT1 + "/delTrace", traceId, String.class);
-            template.postForObject(HOST + PORT2 + "/delTrace", traceId, String.class);
-        });
-    }
-
-    /**
-     * 拉取两个节点已经完成的badTrace
-     */
-    public static void pullFinishedData() {
-        pool.execute(() -> {
-            RestTemplate template = new RestTemplate();
-            HashMap<String, ArrayList<String>> traceMap1 = template.postForObject(HOST + PORT1 + "/finishedData",
-                    GatherData.badTraceIds, HashMap.class);
-            HashMap<String, ArrayList<String>> traceMap2 = template.postForObject(HOST + PORT2 + "finishedData",
-                    GatherData.badTraceIds, HashMap.class);
-
-            for (String badTraceId : GatherData.badTraceIds) {
-                assert traceMap1 != null;
-                ArrayList<String> list1 = traceMap1.get(badTraceId);
-                assert traceMap2 != null;
-                ArrayList<String> list2 = traceMap2.get(badTraceId);
-
-                //排序合并
-                SortData.sortAndMergeTrace(list1, list2);
-                //上报数据
-                finish();
-            }
-
-        });
-    }
-
-    /**
      * 运行结束，数据上报
      */
     public static void finish() {
