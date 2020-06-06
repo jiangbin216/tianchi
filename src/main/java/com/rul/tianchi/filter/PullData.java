@@ -14,8 +14,6 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 从数据流拉取数据
@@ -89,8 +87,11 @@ public class PullData {
                     cachePos++;
                     cachePos %= FilterData.CACHE_SIZE;
                     traces = FilterData.TRACE_CACHE.get(cachePos);
+                    traces.clear();
                 }
             }
+            reader.close();
+            input.close();
 
             //发送剩余的数据到汇总节点
             for (long i = count - 20000 + 1; i <= count; i++) {

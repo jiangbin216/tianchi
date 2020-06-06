@@ -1,6 +1,13 @@
 package com.rul.tianchi;
 
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+import java.io.IOException;
 import java.security.MessageDigest;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 工具类
@@ -8,6 +15,16 @@ import java.security.MessageDigest;
  * @author RuL
  */
 public class Utils {
+
+    private final static OkHttpClient OK_HTTP_CLIENT = new OkHttpClient.Builder()
+            .connectTimeout(50L, TimeUnit.SECONDS)
+            .readTimeout(60L, TimeUnit.SECONDS)
+            .build();
+
+    public static Response callHttp(Request request) throws IOException {
+        Call call = OK_HTTP_CLIENT.newCall(request);
+        return call.execute();
+    }
 
     /**
      * 生成MD5
