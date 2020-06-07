@@ -1,11 +1,14 @@
 package com.rul.tianchi.filter;
 
-import org.springframework.web.bind.annotation.RequestBody;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * 与汇总节点通信接口
@@ -14,23 +17,23 @@ import java.util.HashMap;
  */
 @RestController
 public class FilterDataController {
-    /**
-     * 根据traceId获取trace
-     *
-     * @param traceId traceId
-     * @return traceId对应的trace
-     */
-    @RequestMapping("/getTrace")
-    public ArrayList<String> getTrace(@RequestBody String traceId) {
-        ArrayList<String> trace = new ArrayList<>();
-        for (int i = 0; i < FilterData.CACHE_SIZE; i++) {
-            ArrayList<String> traceIds = FilterData.TRACE_CACHE.get(i).get(traceId);
-            if (traceIds != null) {
-                trace.addAll(traceIds);
-            }
-        }
-        FilterData.badTraceIds.remove(traceId);
-        return trace;
-    }
 
+    @RequestMapping("/getBadTrace")
+    public void getBadTrace(@RequestParam String badTraceIdJson, @RequestParam Integer cachePos) {
+        HashSet<String> badTraceIds = JSON.parseObject(badTraceIdJson, new TypeReference<HashSet<String>>() {
+        });
+        int index = cachePos % FilterData.CACHE_SIZE;
+        int prevIndex = (index - 1 + FilterData.CACHE_SIZE) % FilterData.CACHE_SIZE;
+        int nextIndex = (index + 1) % FilterData.CACHE_SIZE;
+
+        HashMap<String, ArrayList<String>> badTraceMap = new HashMap<>();
+
+        PullData.getBadTrace(prevIndex, badTraceIds, badTraceMap);
+        PullData.getBadTrace(index, badTraceIds, badTraceMap);
+        PullData.getBadTrace(nextIndex, badTraceIds, badTraceMap);
+
+        //前一个缓冲区中的数据已经超时
+        HashMap<String, ArrayList<String>> prevCache = FilterData.TRACE_CACHE.get(prevIndex);
+        prevCache.clear();
+    }
 }

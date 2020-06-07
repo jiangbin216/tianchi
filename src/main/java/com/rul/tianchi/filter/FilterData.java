@@ -21,10 +21,4 @@ public class FilterData {
         }
     }
 
-    //保存所有符合条件的traceId
-    public static Set<String> badTraceIds = new HashSet<>();
-
-    //保存trace的偏移量
-    public static HashMap<Long, String> traceIndex = new HashMap<>();
-
 }

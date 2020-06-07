@@ -1,10 +1,12 @@
 package com.rul.tianchi.gather;
 
-import com.rul.tianchi.Body;
-import com.rul.tianchi.filter.SendData;
-import org.springframework.web.bind.annotation.RequestBody;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashSet;
 
 
 /**
@@ -14,28 +16,47 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class GatherDataController {
-    @RequestMapping("/setFinishedTraceId")
-    public String setFinishedTraceId(@RequestBody Body body) {
-        //是badTrace
-        if (body.isBadTrace()) {
-            GatherData.badTraceIds.add(body.getTraceId());
-        }
 
-        if (GatherData.finishedTraceIds.contains(body.getTraceId()) && GatherData.badTraceIds.contains(body.getTraceId())) {
-            //两个节点均统计完毕且是符合要求的trace,从两个过滤节点请求符合要求的数据
-            ReqData.getTraceFromFilter(body.getTraceId());
+    @RequestMapping("/setBadTraceId")
+    public String setFinishedTraceId(@RequestParam String badTraceIdJson, @RequestParam Integer cachePos) {
+        HashSet<String> badTraceIds = JSON.parseObject(badTraceIdJson, new TypeReference<HashSet<String>>() {
+        });
+        int index = cachePos % GatherData.CACHE_SIZE;
+        TraceIdSet traceIdSet = GatherData.TRACE_ID_CACHE.get(index);
+
+        if (traceIdSet.getTraceIds() == null) {
+            //还没有初始化
+            traceIdSet.setCachePos(cachePos);
+            traceIdSet.setTraceIds(badTraceIds);
         } else {
-            GatherData.finishedTraceIds.add(body.getTraceId());
+            //已经初始化
+            traceIdSet.getTraceIds().addAll(badTraceIds);
+        }
+        traceIdSet.increaseFinishNum();
+
+        //两个过滤节点均完成这批数据的处理
+        if (traceIdSet.getFinishNum() == 2) {
+            new Thread(() -> {
+                int prevPos = traceIdSet.getCachePos() - 1;
+                if (prevPos == -1) {
+                    prevPos = GatherData.CACHE_SIZE - 1;
+                }
+                TraceIdSet prevTraceIds = GatherData.TRACE_ID_CACHE.get(prevPos);
+                //请求前一批数据
+                MergeData.getBadTrace(prevTraceIds.getTraceIds(), prevTraceIds.getCachePos());
+                //生成新对象放在原位置
+                GatherData.TRACE_ID_CACHE.set(prevPos, new TraceIdSet());
+            }).start();
         }
         return "success";
     }
 
-    @RequestMapping("/finished")
+    @RequestMapping("/finish")
     public String finished() {
-        if (GatherData.oneFinished) {
-            ReqData.finish();
-        } else {
-            GatherData.oneFinished = true;
+        GatherData.FINISHED_FILTER++;
+        //两个过滤节点均拉取数据完成
+        if (GatherData.FINISHED_FILTER == 2) {
+            new Thread(MergeData::finish).start();
         }
         return "success";
     }
