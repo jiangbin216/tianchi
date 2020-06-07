@@ -17,7 +17,7 @@ public class FilterData {
 
     public static void initCache() {
         for (int i = 0; i < CACHE_SIZE; i++) {
-            TRACE_CACHE.add(new HashMap<>((int) (TRACE_MAP_SIZE / 0.75) + 1));
+            TRACE_CACHE.add(new HashMap<>());
         }
     }
 

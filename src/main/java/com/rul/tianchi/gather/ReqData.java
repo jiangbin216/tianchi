@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -43,17 +45,14 @@ public class ReqData {
             ArrayList trace1 = template.postForObject(HOST + PORT1 + "/getTrace", traceId, ArrayList.class);
             ArrayList trace2 = template.postForObject(HOST + PORT2 + "/getTrace", traceId, ArrayList.class);
             //排序合并
-            ArrayList trace = SortData.sortAndMergeTrace(trace1, trace2);
+            String spans = SortData.sortAndMergeTrace(trace1, trace2);
 
-            StringBuffer spans = new StringBuffer();
-            for (Object span : trace) {
-                spans.append(span).append("\n");
-            }
             //生成md5
             String md5 = Utils.MD5(new String(spans));
             GatherData.checkSum.put(traceId, md5);
             //将traceId从badTraceIds中删除
             GatherData.badTraceIds.remove(traceId);
+
         });
     }
 
