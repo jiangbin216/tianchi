@@ -19,9 +19,12 @@ import java.util.HashSet;
 public class FilterDataController {
 
     @RequestMapping("/getBadTrace")
-    public void getBadTrace(@RequestParam String badTraceIdJson, @RequestParam Integer cachePos) {
+    public String getBadTrace(@RequestParam String badTraceIdJson, @RequestParam Integer cachePos) {
         HashSet<String> badTraceIds = JSON.parseObject(badTraceIdJson, new TypeReference<HashSet<String>>() {
         });
+        if (badTraceIds == null) {
+            return null;
+        }
         int index = cachePos % FilterData.CACHE_SIZE;
         int prevIndex = (index - 1 + FilterData.CACHE_SIZE) % FilterData.CACHE_SIZE;
         int nextIndex = (index + 1) % FilterData.CACHE_SIZE;
@@ -35,5 +38,6 @@ public class FilterDataController {
         //前一个缓冲区中的数据已经超时
         HashMap<String, ArrayList<String>> prevCache = FilterData.TRACE_CACHE.get(prevIndex);
         prevCache.clear();
+        return JSON.toJSONString(badTraceMap);
     }
 }

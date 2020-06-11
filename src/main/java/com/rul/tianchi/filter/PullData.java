@@ -138,7 +138,7 @@ public class PullData {
             String badTraceIdJson = JSON.toJSONString(badTraceIds);
             RequestBody body = new FormBody.Builder().add("badTraceIdJson", badTraceIdJson)
                     .add("cachePos", cachePos + "").build();
-            Request request = new Request.Builder().url(LOCALHOST + NodePort.GATHER_PORT + "setBadTraceId")
+            Request request = new Request.Builder().url(LOCALHOST + NodePort.GATHER_PORT + "/setBadTraceId")
                     .post(body).build();
             Response response = Utils.callHttp(request);
             response.close();
@@ -177,6 +177,7 @@ public class PullData {
             Request request = new Request.Builder().url(LOCALHOST + NodePort.GATHER_PORT + "/finish").build();
             Response response = Utils.callHttp(request);
             response.close();
+            LOGGER.info("pull finished");
         } catch (IOException e) {
             e.printStackTrace();
         }

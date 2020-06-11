@@ -37,15 +37,12 @@ public class GatherDataController {
         //两个过滤节点均完成这批数据的处理
         if (traceIdSet.getFinishNum() == 2) {
             new Thread(() -> {
-                int prevPos = traceIdSet.getCachePos() - 1;
-                if (prevPos == -1) {
-                    prevPos = GatherData.CACHE_SIZE - 1;
-                }
-                TraceIdSet prevTraceIds = GatherData.TRACE_ID_CACHE.get(prevPos);
+                int prevIndex = (traceIdSet.getCachePos() - 1 + GatherData.CACHE_SIZE) % GatherData.CACHE_SIZE;
+                TraceIdSet prevTraceIds = GatherData.TRACE_ID_CACHE.get(prevIndex);
                 //请求前一批数据
                 MergeData.getBadTrace(prevTraceIds.getTraceIds(), prevTraceIds.getCachePos());
                 //生成新对象放在原位置
-                GatherData.TRACE_ID_CACHE.set(prevPos, new TraceIdSet());
+                GatherData.TRACE_ID_CACHE.set(prevIndex, new TraceIdSet());
             }).start();
         }
         return "success";

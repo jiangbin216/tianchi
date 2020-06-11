@@ -9,6 +9,8 @@ import okhttp3.FormBody;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
  */
 public class MergeData {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MergeData.class);
     private static final String[] filterPorts = new String[]{NodePort.FILTER_PORT1, NodePort.FILTER_PORT2};
     private static final String LOCALHOST = "http://localhost:";
 
@@ -76,6 +79,7 @@ public class MergeData {
             }
         }
 
+        //上报结果
         try {
             String result = JSON.toJSONString(GatherData.CHECKSUM);
             RequestBody body = new FormBody.Builder()

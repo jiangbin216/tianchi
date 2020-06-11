@@ -2,12 +2,10 @@ D:\MyProject\tianchi\src\main\java\com\rul\tianchi\gather\GatherData.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\NodePort.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\TianchiApplication.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\filter\FilterData.java
-D:\MyProject\tianchi\src\main\java\com\rul\tianchi\gather\SortData.java
-D:\MyProject\tianchi\src\main\java\com\rul\tianchi\Body.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\filter\FilterDataController.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\gather\GatherDataController.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\CommonController.java
-D:\MyProject\tianchi\src\main\java\com\rul\tianchi\filter\SendData.java
-D:\MyProject\tianchi\src\main\java\com\rul\tianchi\gather\ReqData.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\Utils.java
 D:\MyProject\tianchi\src\main\java\com\rul\tianchi\filter\PullData.java
+D:\MyProject\tianchi\src\main\java\com\rul\tianchi\gather\MergeData.java
+D:\MyProject\tianchi\src\main\java\com\rul\tianchi\gather\TraceIdSet.java
