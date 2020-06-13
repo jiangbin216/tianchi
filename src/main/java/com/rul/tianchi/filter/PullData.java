@@ -21,6 +21,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 从数据流拉取数据
@@ -30,6 +32,7 @@ import java.util.HashSet;
 public class PullData {
     private static final Logger LOGGER = LoggerFactory.getLogger(PullData.class);
     private static final String LOCALHOST = "http://localhost:";
+    private static ExecutorService threadPool = Executors.newFixedThreadPool(2);
 
     public static void pullData() {
         //连接到数据源
@@ -87,7 +90,8 @@ public class PullData {
                         index = 0;
                     }
                     int cachePos = (int) (count / FilterData.TRACE_MAP_SIZE - 1);
-                    setBadTraceId(badTraceIds, cachePos);
+                    threadPool.execute(() -> setBadTraceId(badTraceIds, cachePos));
+
 
                     //切换到下一个缓冲区
                     traces = FilterData.TRACE_CACHE.get(index);
@@ -98,7 +102,8 @@ public class PullData {
                     badTraceIds.clear();
                 }
             }
-            setBadTraceId(badTraceIds, (int) (count / FilterData.TRACE_MAP_SIZE));
+            long finalCount = count;
+            threadPool.execute(()-> setBadTraceId(badTraceIds, (int) (finalCount / FilterData.TRACE_MAP_SIZE)));
             reader.close();
             input.close();
             filterFinish();
