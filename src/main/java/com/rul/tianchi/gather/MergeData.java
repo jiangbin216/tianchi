@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
  */
 public class MergeData {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MergeData.class);
     private static final String[] filterPorts = new String[]{NodePort.FILTER_PORT1, NodePort.FILTER_PORT2};
     private static final String LOCALHOST = "http://localhost:";
 
@@ -87,6 +88,7 @@ public class MergeData {
             Request request = new Request.Builder().url(url).post(body).build();
             Response response = Utils.callHttp(request);
             response.close();
+            LOGGER.info("checksum finish");
         } catch (IOException e) {
             e.printStackTrace();
         }

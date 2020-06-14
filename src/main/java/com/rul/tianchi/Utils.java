@@ -101,12 +101,6 @@ public class Utils {
      * 解析数据startTime
      */
     public static long parseStartTime(String line) {
-        return Long.parseLong(line.split("\\|")[1]);
-    }
-    /*public static long parseStartTime(String line) {
-        if (line == null) {
-            return 0;
-        }
         char[] chars = line.toCharArray();
         int len = chars.length;
         int index1 = 0;
@@ -124,7 +118,7 @@ public class Utils {
                 }
             }
         }
-        return Long.parseLong(new String(chars, index1, index2 - index1));
-    }*/
+        return Long.parseLong(line.substring(index1,index2));
+    }
 
 }
