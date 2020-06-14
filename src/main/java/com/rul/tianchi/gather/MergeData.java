@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
  */
 public class MergeData {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MergeData.class);
     private static final String[] filterPorts = new String[]{NodePort.FILTER_PORT1, NodePort.FILTER_PORT2};
     private static final String LOCALHOST = "http://localhost:";
 

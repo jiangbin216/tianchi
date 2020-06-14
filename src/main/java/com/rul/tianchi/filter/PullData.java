@@ -32,9 +32,9 @@ import java.util.concurrent.Executors;
 public class PullData {
     private static final Logger LOGGER = LoggerFactory.getLogger(PullData.class);
     private static final String LOCALHOST = "http://localhost:";
-    private static ExecutorService threadPool = Executors.newFixedThreadPool(2);
 
     public static void pullData() {
+        ExecutorService threadPool = Executors.newFixedThreadPool(2);
         //连接到数据源
         HttpURLConnection connection = null;
         try {
@@ -64,8 +64,9 @@ public class PullData {
             LOGGER.info("start pulling data");
             while ((line = reader.readLine()) != null) {
                 count++;
-                traceId = Utils.parseTraceId(line);
-                tags = Utils.parseTags(line);
+                String[] traceIdAndTags = Utils.parseTraceIdAndTags(line);
+                traceId = traceIdAndTags[0];
+                tags = traceIdAndTags[1];
 
                 ArrayList<String> spans;
                 if (traces.get(traceId) == null) {
@@ -90,8 +91,9 @@ public class PullData {
                         index = 0;
                     }
                     int cachePos = (int) (count / FilterData.TRACE_MAP_SIZE - 1);
-                    threadPool.execute(() -> setBadTraceId(badTraceIds, cachePos));
 
+                    HashSet<String> traceIds = new HashSet<>(badTraceIds);
+                    threadPool.execute(() -> setBadTraceId(traceIds, cachePos));
 
                     //切换到下一个缓冲区
                     traces = FilterData.TRACE_CACHE.get(index);
@@ -103,10 +105,11 @@ public class PullData {
                 }
             }
             long finalCount = count;
-            threadPool.execute(()-> setBadTraceId(badTraceIds, (int) (finalCount / FilterData.TRACE_MAP_SIZE)));
+            threadPool.execute(() -> setBadTraceId(badTraceIds, (int) (finalCount / FilterData.TRACE_MAP_SIZE)));
             reader.close();
             input.close();
             filterFinish();
+            LOGGER.info("finish pull data");
         } catch (IOException e) {
             e.printStackTrace();
             LOGGER.error("catch IOException");
@@ -182,7 +185,6 @@ public class PullData {
             Request request = new Request.Builder().url(LOCALHOST + NodePort.GATHER_PORT + "/finish").build();
             Response response = Utils.callHttp(request);
             response.close();
-            LOGGER.info("pull finished");
         } catch (IOException e) {
             e.printStackTrace();
         }

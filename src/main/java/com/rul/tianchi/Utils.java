@@ -60,17 +60,41 @@ public class Utils {
     }
 
     /**
-     * 解析数据traceId
+     * 解析每行数据的traceId和tags
+     *
+     * @param line 待解析的字符串
+     * @return [0]:traceId  [1]:tags
      */
-    public static String parseTraceId(String line) {
-        return line.split("\\|")[0];
-    }
+    public static String[] parseTraceIdAndTags(String line) {
+        String[] traceIdAndTags = new String[2];
+        char[] chars = line.toCharArray();
+        int index = 0;
+        int len = chars.length;
+        for(int i=0;i<len;i++){
+            if(chars[i]=='|'){
+                index = i;
+                break;
+            }
+        }
 
-    /**
-     * 解析数据tags
-     */
-    public static String parseTags(String line) {
-        return line.split("\\|")[8];
+        //traceId
+        traceIdAndTags[0] = new String(chars, 0, index);
+
+        int flagCount = 0;
+        index = 0;
+        for (int i = 0; i < len; i++) {
+            if (chars[i] == '|') {
+                flagCount++;
+            }
+            if (flagCount == 8) {
+                index = i + 1;
+                break;
+            }
+        }
+        //tags
+        traceIdAndTags[1] = new String(chars, index, len - index);
+
+        return traceIdAndTags;
     }
 
     /**
@@ -79,5 +103,28 @@ public class Utils {
     public static long parseStartTime(String line) {
         return Long.parseLong(line.split("\\|")[1]);
     }
+    /*public static long parseStartTime(String line) {
+        if (line == null) {
+            return 0;
+        }
+        char[] chars = line.toCharArray();
+        int len = chars.length;
+        int index1 = 0;
+        int index2 = 0;
+        int flagCount = 0;
+        for (int i = 0; i < len; i++) {
+            if (chars[i] == '|') {
+                flagCount++;
+                if (flagCount == 1) {
+                    index1 = i + 1;
+                }
+                if (flagCount == 2) {
+                    index2 = i;
+                    break;
+                }
+            }
+        }
+        return Long.parseLong(new String(chars, index1, index2 - index1));
+    }*/
 
 }
